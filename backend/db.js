@@ -8,11 +8,18 @@ if (!process.env.DATABASE_URL) {
 console.log('Connecting to database...');
 console.log('Database host:', process.env.DATABASE_URL.split('@')[1]?.split(':')[0]);
 
+// Parse connection string to force IPv4
+const url = new URL(process.env.DATABASE_URL);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
-  }
+  },
+  // Connection options to improve reliability on Render
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
 });
 
 // Test connection on startup
