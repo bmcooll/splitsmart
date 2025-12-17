@@ -6,10 +6,17 @@ if (!process.env.DATABASE_URL) {
 }
 
 console.log('Connecting to database...');
-console.log('Database host:', process.env.DATABASE_URL.split('@')[1]?.split(':')[0]);
 
-// Parse connection string to force IPv4
-const url = new URL(process.env.DATABASE_URL);
+// Extract and log connection details for debugging
+try {
+  const url = new URL(process.env.DATABASE_URL);
+  console.log('Database host:', url.hostname);
+  console.log('Database port:', url.port);
+  console.log('Database name:', url.pathname.substring(1));
+} catch (error) {
+  console.error('Error parsing DATABASE_URL:', error.message);
+  console.log('Raw DATABASE_URL format:', process.env.DATABASE_URL.substring(0, 50) + '...');
+}
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -26,8 +33,13 @@ const pool = new Pool({
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
     console.error('Database connection failed:', err.message);
+    console.error('Error code:', err.code);
+    console.error('Error details:', err);
+    
+    // Don't exit the process, let the app start anyway
+    // Some routes might work without database
   } else {
-    console.log('Database connected successfully at:', res.rows[0].now);
+    console.log('✅ Database connected successfully at:', res.rows[0].now);
   }
 });
 
