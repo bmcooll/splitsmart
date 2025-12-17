@@ -18,11 +18,20 @@ try {
   console.log('Raw DATABASE_URL format:', process.env.DATABASE_URL.substring(0, 50) + '...');
 }
 
+// Parse the connection URL to extract components
+const url = new URL(process.env.DATABASE_URL);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
   },
+  // Force IPv4 to avoid IPv6 connectivity issues on Render
+  host: url.hostname,
+  port: parseInt(url.port),
+  database: url.pathname.substring(1),
+  user: url.username,
+  password: url.password,
   // Connection options to improve reliability on Render
   max: 20,
   idleTimeoutMillis: 30000,
